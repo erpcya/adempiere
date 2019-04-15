@@ -2320,10 +2320,10 @@ public class CPOS {
 				sql.append("AND p.AD_Client_ID=? AND p.IsSold=? AND p.Discontinued=? ")
 				.append("AND ")
 				.append("(")
-				.append("UPPER(p.Name)  LIKE UPPER('").append("%").append(productCode.replace(" ","%")).append("%").append("')")
-				.append(" OR UPPER(p.Value) LIKE UPPER('").append("%").append(productCode.replace(" ","%")).append("%").append("')")
-				.append(" OR UPPER(p.UPC)   LIKE UPPER('").append("%").append(productCode.replace(" ","%")).append("%").append("')")
-				.append(" OR UPPER(p.SKU)   LIKE UPPER('").append("%").append(productCode.replace(" ","%")).append("%").append("')")
+				.append("UPPER(p.Name)  LIKE UPPER('").append("%").append(productCode).append("%").append("')")
+				.append(" OR UPPER(p.Value) LIKE UPPER('").append("%").append(productCode).append("%").append("')")
+				.append(" OR UPPER(p.UPC)   LIKE UPPER('").append("%").append(productCode).append("%").append("')")
+				.append(" OR UPPER(p.SKU)   LIKE UPPER('").append("%").append(productCode).append("%").append("')")
 				.append(")");
 		PreparedStatement statement = null;
 		try{
