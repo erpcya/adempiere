@@ -17,7 +17,7 @@ echo Setting myEnvironment ....
 #	If not in the path, provide a link called netscape to your browser
 
 # 	Homes ...
-ADEMPIERE_HOME=$TRAVIS_BUILD_DIR/adempiere/Adempiere
+ADEMPIERE_HOME=$ACTION_BUILD_DIR/adempiere/Adempiere
 export ADEMPIERE_HOME
 #JAVA_HOME=/usr/local/jdk8
 #export JAVA_HOME
@@ -34,7 +34,7 @@ ADEMPIERE_DB_PASSWORD=adempiere
 export ADEMPIERE_DB_PASSWORD
 ADEMPIERE_DB_URL=@ADEMPIERE_DB_URL@
 export ADEMPIERE_DB_URL
-ADEMPIERE_DB_PORT=5433
+ADEMPIERE_DB_PORT=5432
 export ADEMPIERE_DB_PORT
 
 #	Oracle Specifics ...
