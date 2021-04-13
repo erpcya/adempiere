@@ -61,4 +61,4 @@ jobs:
           echo $ANT_HOME
           echo $PATH
           echo $(ant -version)
-          ant complete
+          ant build
