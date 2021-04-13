@@ -20,6 +20,7 @@ echo Setting myEnvironment ....
 ADEMPIERE_HOME=$GITHUB_WORKSPACE/adempiere/Adempiere
 export ADEMPIERE_HOME
 echo $ADEMPIERE_HOME
+echo $POSTGRES_HOST
 echo `pwd`
 #JAVA_HOME=/usr/local/jdk8
 #export JAVA_HOME
@@ -28,7 +29,7 @@ echo `pwd`
 #export PATH
 
 #	Database ...
-ADEMPIERE_DB_SERVER=postgres
+ADEMPIERE_DB_SERVER=$POSTGRES_HOST
 export ADEMPIERE_DB_SERVER
 ADEMPIERE_DB_USER=adempiere
 export ADEMPIERE_DB_USER
