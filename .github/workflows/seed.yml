@@ -1,5 +1,11 @@
 name: Action for generate SEED aplying all XMLs
-on: push
+# Controls when the action will run. 
+on:
+  # Triggers the workflow on push or pull request events but only for the develop branch
+  push:
+   branches: [ "master", "develop", "bugfix/*", "feature/*" ]
+  pull_request:
+    branches: [ "master", "develop", "bugfix/*", "feature/*" ]
 
 jobs:
   # Label of the container job
