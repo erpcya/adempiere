@@ -1,4 +1,8 @@
-name: Action for generate SEED aplying all XMLs
+# This is a basic workflow to help you get started with Actions
+# This file was contributed by Carlos Parada and Yamel Senih from ERP Consultores y Asociados, C.A
+
+name: ADempiere Build
+
 # Controls when the action will run. 
 on:
   # Triggers the workflow on push or pull request events but only for the develop branch
@@ -7,10 +11,11 @@ on:
   pull_request:
     branches: [ "master", "develop", "bugfix/*", "feature/*" ]
 
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # Label of the container job
-  create-seed:
-    # Containers must run in Linux based operating systems
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
     runs-on: ubuntu-latest
     # Service containers to run with `container-job`
     services:
@@ -27,15 +32,25 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-
+          
+    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Downloads a copy of the code in your repository before running CI tests
-      - name: Check out repository code
-        uses: actions/checkout@v2
-      - name: Check version of PostgreSQL client
-        run: psql --version
-      - name: Install ant 
-      - run: |
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+      
+      # Ensure a compatible version of java is used
+      - name: Setup Java JDK
+        uses: actions/setup-java@v1.4.3
+        with:
+            java-version: '1.8'
+            java-package: jdk
+
+      # Build ADempiere with ant
+      - name: Build Adempiere ...
+        env:
+          ACTION_BUILD_DIR: ${{ github.action_path }}
+        run: |
+          echo $ACTION_BUILD_DIR
           echo $GITHUB_REF
           echo $GITHUB_HEAD_REF
           echo $GITHUB_BASE_REF
@@ -50,4 +65,3 @@ jobs:
           echo $PATH
           echo $(ant -version)
           ant build
-      
