@@ -43,5 +43,5 @@ jobs:
           echo $ANT_HOME
           echo $PATH
           echo $(ant -version)
-      - name: Build Complete and Apply XML
+      - name: Build Complete and Apply XMLs
       - run: ant build
