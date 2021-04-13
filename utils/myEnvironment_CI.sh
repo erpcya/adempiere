@@ -17,8 +17,10 @@ echo Setting myEnvironment ....
 #	If not in the path, provide a link called netscape to your browser
 
 # 	Homes ...
-ADEMPIERE_HOME=$ACTION_BUILD_DIR/adempiere/Adempiere
+ADEMPIERE_HOME=`pwd`/adempiere/Adempiere
 export ADEMPIERE_HOME
+echo $ADEMPIERE_HOME
+echo `pwd`
 #JAVA_HOME=/usr/local/jdk8
 #export JAVA_HOME
 
