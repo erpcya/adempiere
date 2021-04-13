@@ -28,7 +28,7 @@ echo `pwd`
 #export PATH
 
 #	Database ...
-ADEMPIERE_DB_SERVER=localhost
+ADEMPIERE_DB_SERVER=postgres
 export ADEMPIERE_DB_SERVER
 ADEMPIERE_DB_USER=adempiere
 export ADEMPIERE_DB_USER
