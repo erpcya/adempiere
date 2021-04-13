@@ -54,5 +54,5 @@ jobs:
           echo $GITHUB_REF
           echo $GITHUB_HEAD_REF
           echo $GITHUB_BASE_REF
-          echo ${{ github.ref }}
+          echo pwd
           echo ${{ github.action_path }}
