@@ -34,9 +34,10 @@
 			tofile="${myEnvironment}" filtering="yes" overwrite="yes" />
   	
   	<echo message="Copy myEnvironment_CI to myEnvironment"/>
-  	<copy file="${AdempierePropertiesFrom}"
+  	<!--
+        <copy file="${AdempierePropertiesFrom}"
 			tofile="${AdempierePropertiesTo}" filtering="yes" overwrite="yes" />
-  	
+  	-->
   	<echo message="Run Import Adempiere"/>
   	<exec dir="${env_directory}" executable="/bin/bash" failonerror="true">
     	<arg value="${RUN_ImportAdempiere}"/>
