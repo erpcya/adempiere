@@ -18,6 +18,8 @@
   <property name="RUN_silentsetup" location="adempiere/Adempiere/RUN_silentsetup.sh"/>
   <property name="AdempierePropertiesFrom" location="adempiere/Adempiere/utils/adempiereProperties_CI.properties"/>
   <property name="AdempierePropertiesTo" location="adempiere/Adempiere/Adempiere.properties"/>
+  <property name="myDBcopyTemplate" location="adempiere/Adempiere/utils/myDBcopyTemplate.sh"/>
+  <property name="myDBcopy" location="adempiere/Adempiere/utils/myDBcopy.sh"/>
   
   
   
@@ -34,6 +36,11 @@
   	<copy file="${myEnvironment_CI}"
 			tofile="${myEnvironment}" filtering="yes" overwrite="yes" />
   	
+	
+	<echo message="Copy myDBcopyTemplate to myDBcopy"/>
+  	<copy file="${myDBcopyTemplate}"
+			tofile="${myDBcopy}" filtering="yes" overwrite="yes" />
+	
   	<echo message="Copy myEnvironment_CI to myEnvironment"/>
   	<copy file="${AdempierePropertiesFrom}"
 			tofile="${AdempierePropertiesTo}" filtering="yes" overwrite="yes" />
