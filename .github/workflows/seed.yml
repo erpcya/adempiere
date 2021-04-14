@@ -26,6 +26,8 @@ jobs:
         # Provide the password for postgres
         env:
           POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
         # Set health checks to wait until postgres has started
         options: >-
           --health-cmd pg_isready
@@ -49,7 +51,7 @@ jobs:
       - name: Build Adempiere ...
         env:
           ACTION_BUILD_DIR: ${{ github.action_path }}
-          POSTGRES_HOST: 0.0.0.0
+          POSTGRES_HOST: localhost
           # The default PostgreSQL port
           POSTGRES_PORT: 5432
         run: |
