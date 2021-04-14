@@ -49,7 +49,7 @@ jobs:
       - name: Build Adempiere ...
         env:
           ACTION_BUILD_DIR: ${{ github.action_path }}
-          POSTGRES_HOST: postgres_host
+          POSTGRES_HOST: localhost
           # The default PostgreSQL port
           POSTGRES_PORT: 5432
         run: |
