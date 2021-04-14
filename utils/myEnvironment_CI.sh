@@ -20,8 +20,6 @@ echo Setting myEnvironment ....
 ADEMPIERE_HOME=$GITHUB_WORKSPACE/adempiere/Adempiere
 export ADEMPIERE_HOME
 echo $ADEMPIERE_HOME
-echo $POSTGRES_HOST
-echo `pwd`
 #JAVA_HOME=/usr/local/jdk8
 #export JAVA_HOME
 
