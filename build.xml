@@ -66,9 +66,9 @@
     	<arg value="${RUN_ExportReference}"/>
   	</exec>
 	  
-	<echo message="Run Export Database"/>
+	<!--<echo message="Run Export Database"/>
 	<exec dir="${env_directory}" executable="/bin/bash" failonerror="true">
     	<arg value="${RUN_DBExport}"/>
-  	</exec>
+  	</exec>-->
   </target>
 </project>
