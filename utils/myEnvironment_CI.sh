@@ -17,7 +17,7 @@ echo Setting myEnvironment ....
 #	If not in the path, provide a link called netscape to your browser
 
 # 	Homes ...
-ADEMPIERE_HOME=$GITHUB_WORKSPACE/install/build/Adempiere
+ADEMPIERE_HOME=$GITHUB_WORKSPACE/adempiere/Adempiere
 export ADEMPIERE_HOME
 echo $ADEMPIERE_HOME
 #JAVA_HOME=/usr/local/jdk8
