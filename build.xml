@@ -26,7 +26,7 @@
   
   <target name="build">
         <echo message="Building ADempiere"/>
-	<ant antfile="${adempiere_build}" target="build"/>
+	<ant antfile="${adempiere_build}" target="complete"/>
 	
 	<echo message="Deploy ADempiere"/>
 	<chmod dir="${AD_directory}" perm="ugo+rx" includes="**/*.sh"/>
