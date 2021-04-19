@@ -56,22 +56,14 @@
     	<arg value="${RUN_DBRestore}"/>
   	</exec>
   	
-	<!--<echo message="Run Migrate XML"/>
+	<echo message="Run Migrate XML"/>
 	<exec dir="${AD_directory}" executable="/bin/bash" failonerror="true">
     	<arg value="${RUN_MigrateXML}"/>
   	</exec>
-	-->
+
 	<echo message="Run Export Database"/>
 	<exec dir="${env_directory}" executable="/bin/bash" failonerror="true">
     	<arg value="${RUN_ExportReference}"/>
   	</exec>
-	  
-	<echo message="Installing ADempiere"/>
-	<ant antfile="${adempiere_build}" target="install"/>
-	  
-	<!--<echo message="Run Export Database"/>
-	<exec dir="${env_directory}" executable="/bin/bash" failonerror="true">
-    	<arg value="${RUN_DBExport}"/>
-  	</exec>-->
   </target>
 </project>
