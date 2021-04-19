@@ -6,21 +6,21 @@
         http://www.erpya.com
     </description>
   <!-- set global properties for this build -->
-  <property name="env_directory" location="install/build/Adempiere/utils"/>
-  <property name="AD_directory" location="install/build/Adempiere"/>
+  <property name="env_directory" location="adempiere/Adempiere/utils"/>
+  <property name="AD_directory" location="adempiere/Adempiere"/>
   <property name="adempiere_build" location="utils_dev/build.xml"/>
-  <property name="myEnvironment_CI" location="install/build/Adempiere/utils/myEnvironment_CI.sh"/>
-  <property name="myEnvironment" location="install/build/Adempiere/utils/myEnvironment.sh"/>
-  <property name="RUN_DBRestore" location="install/build/Adempiere/utils/RUN_DBRestore.sh"/>
-  <property name="RUN_DBExport" location="install/build/Adempiere/utils/RUN_DBExport.sh"/>
-  <property name="RUN_ExportReference" location="install/build/Adempiere/utils/RUN_ExportReference.sh"/>
-  <property name="RUN_ImportAdempiere" location="install/build/Adempiere/utils/RUN_ImportAdempiere.sh"/>
-  <property name="RUN_MigrateXML" location="install/build/Adempiere/utils/RUN_MigrateXML.sh"/>
-  <property name="RUN_silentsetup" location="install/build/Adempiere/RUN_silentsetup.sh"/>
-  <property name="AdempierePropertiesFrom" location="install/build/Adempiere/utils/adempiereProperties_CI.properties"/>
-  <property name="AdempierePropertiesTo" location="install/build/Adempiere/Adempiere.properties"/>
-  <property name="myDBcopyTemplate" location="install/build/Adempiere/utils/myDBcopyTemplate.sh"/>
-  <property name="myDBcopy" location="install/build/Adempiere/utils/myDBcopy.sh"/>
+  <property name="myEnvironment_CI" location="adempiere/Adempiere/utils/myEnvironment_CI.sh"/>
+  <property name="myEnvironment" location="adempiere/Adempiere/utils/myEnvironment.sh"/>
+  <property name="RUN_DBRestore" location="adempiere/Adempiere/utils/RUN_DBRestore.sh"/>
+  <property name="RUN_DBExport" location="adempiere/Adempiere/utils/RUN_DBExport.sh"/>
+  <property name="RUN_ExportReference" location="adempiere/Adempiere/utils/RUN_ExportReference.sh"/>
+  <property name="RUN_ImportAdempiere" location="adempiere/Adempiere/utils/RUN_ImportAdempiere.sh"/>
+  <property name="RUN_MigrateXML" location="adempiere/Adempiere/utils/RUN_MigrateXML.sh"/>
+  <property name="RUN_silentsetup" location="adempiere/Adempiere/RUN_silentsetup.sh"/>
+  <property name="AdempierePropertiesFrom" location="adempiere/Adempiere/utils/adempiereProperties_CI.properties"/>
+  <property name="AdempierePropertiesTo" location="adempiere/Adempiere/Adempiere.properties"/>
+  <property name="myDBcopyTemplate" location="adempiere/Adempiere/utils/myDBcopyTemplate.sh"/>
+  <property name="myDBcopy" location="adempiere/Adempiere/utils/myDBcopy.sh"/>
   
   
   
