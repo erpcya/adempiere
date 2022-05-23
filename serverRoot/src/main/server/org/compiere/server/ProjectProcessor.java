@@ -697,7 +697,7 @@ public class ProjectProcessor extends AdempiereServer
 		if (value !=null)
 			result.append(value);
 		else 
-			result.append(ProjectProcessorService.get_DisplayValue(column,m_PO));
+			result.append(ProjectProcessorService.getDisplayValue(column,m_PO));
 		
 		result.append("</li>\n");
 

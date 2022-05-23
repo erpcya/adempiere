@@ -119,7 +119,7 @@ public class ProjectProcessorService {
 	 * @param entity
 	 * @return
 	 */
-	public static String get_DisplayValue(String columnName, PO entity) {
+	public static String getDisplayValue(String columnName, PO entity) {
 		
 		if (entity==null) 
 			return "--";
@@ -348,7 +348,7 @@ public class ProjectProcessorService {
 				change.setAD_Table_ID(entity.get_Table_ID());
 				change.setRecord_ID(entity.get_ID());
 				change.setAD_Column_ID(MColumn.getColumn_ID(entity.get_TableName(), columnName));
-				change.setNewValue((get_DisplayValue(columnName,entity)));
+				change.setNewValue((getDisplayValue(columnName,entity)));
 				
 				if (!change.save()) {
 					throw new AdempiereException("@SaveError@ @C_ProjectProcessorQueued_ID@");
