@@ -1,6 +1,6 @@
-<project name="FleetManagement" default="zkdist" basedir=".">
+<project name="DistributionManagement" default="zkdist" basedir=".">
     <description>
-        Building FleetManagement.jar
+        Building DistributionManagement.jar
         by
         Victor Perez 
         http://www.e-evolution.com
@@ -83,14 +83,14 @@
         <!-- Create the distribution directory -->
         <mkdir dir="${dist}/lib"/>
         <!-- Put everything in ${zkclasses} into the MyProject-${DSTAMP}.jar file -->
-        <jar jarfile="${dist}/lib/FleetManagementZk.jar" basedir="${basedir}/build/zkwebui" includes="WEB-INF/"/>
+        <jar jarfile="${dist}/lib/DistributionManagementZk.jar" basedir="${basedir}/build/zkwebui" includes="WEB-INF/"/>
 
         <!-- Create target Liberozk deployment -->
-        <mkdir dir="${env.ADEMPIERE_HOME}/zkpackages/FleetManagement/lib"/>
+        <mkdir dir="${env.ADEMPIERE_HOME}/zkpackages/DistributionManagement/lib"/>
 
         <!-- Transfer liberozkWM.jar -->
-        <copy file="${dist}/lib/FleetManagementZk.jar" todir="${env.ADEMPIERE_HOME}/zkpackages/FleetManagement/lib"/>
-        <copy file="${dist}/lib/FleetManagementZk.jar" todir="../zkpackages/"/>
+        <copy file="${dist}/lib/DistributionManagementZk.jar" todir="${env.ADEMPIERE_HOME}/zkpackages/DistributionManagement/lib"/>
+        <copy file="${dist}/lib/DistributionManagementZk.jar" todir="../zkpackages/"/>
     </target>
 
 
