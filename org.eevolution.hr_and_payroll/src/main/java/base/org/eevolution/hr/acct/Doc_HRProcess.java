@@ -22,8 +22,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import org.adempiere.core.domains.models.I_HR_Movement;
-import org.adempiere.core.domains.models.X_HR_Concept_Acct;
 import org.compiere.acct.Doc;
 import org.compiere.acct.DocLine;
 import org.compiere.acct.Fact;
@@ -33,11 +31,11 @@ import org.compiere.model.MAcctSchema;
 import org.compiere.model.MCharge;
 import org.compiere.model.Query;
 import org.compiere.util.Env;
+import org.adempiere.core.domains.models.I_HR_Movement;
 import org.eevolution.hr.model.MHRConcept;
 import org.eevolution.hr.model.MHRMovement;
-import org.eevolution.hr.model.MHRPayroll;
 import org.eevolution.hr.model.MHRProcess;
-
+import org.adempiere.core.domains.models.X_HR_Concept_Acct;
 
 /**
  *  Post Payroll Documents.
@@ -122,12 +120,11 @@ public class   Doc_HRProcess extends Doc
 		Fact fact = new Fact(this, as, Fact.POST_Actual);
 		BigDecimal totalDebit = Env.ZERO;
 		BigDecimal totalCredit = Env.ZERO;
-		MHRPayroll payroll = MHRPayroll.getById(getCtx(), process.getHR_Payroll_ID(), getTrxName());
 		for (DocLine line : p_lines) {
 			if (C_BPartner_ID == 0)
 				C_BPartner_ID = line.getC_BPartner_ID();
 			//Close every employee
-			if (line.getC_BPartner_ID() != 0 && line.getC_BPartner_ID() != C_BPartner_ID && payroll.isPostPerEmployee()) {
+			if (line.getC_BPartner_ID() != 0 && line.getC_BPartner_ID() != C_BPartner_ID && process.getHR_Payroll().isPostPerEmployee()) {
 				closeBPartner(totalDebit, totalCredit, fact, as, C_BPartner_ID);
 				C_BPartner_ID = line.getC_BPartner_ID();
 				totalDebit = Env.ZERO;
@@ -141,7 +138,7 @@ public class   Doc_HRProcess extends Doc
 			MHRConcept concept = MHRConcept.getById(as.getCtx(), payrollDocLine.getHR_Concept_ID() , getTrxName());
 			//	Get Concept Account
 			X_HR_Concept_Acct conceptAcct = concept.getConceptAcct(
-					Optional.ofNullable(as.getC_AcctSchema_ID()),
+					Optional.ofNullable(payrollDocLine.getAccountSchemaId()),
 					Optional.ofNullable(process.getHR_Payroll_ID()),
 					Optional.ofNullable(payrollDocLine.getC_BP_Group_ID()));
 
@@ -156,41 +153,37 @@ public class   Doc_HRProcess extends Doc
 					MAccount accountBPD = MAccount.getValidCombination (getCtx(), conceptAcct.getHR_Expense_Acct() , getTrxName());
 					FactLine debitLine = fact.createLine(line, accountBPD, getC_Currency_ID(),sumAmount, null);
 					debitLine.setDescription(process.getDocumentNo() + " " + process.getName() + " " + concept.getValue() + " " + concept.getName());
-					debitLine.saveEx();
 					MAccount accountBPC = MAccount.getValidCombination (getCtx(), conceptAcct.getHR_Revenue_Acct() , getTrxName());
 					FactLine creditLine = fact.createLine(line,accountBPC, getC_Currency_ID(),null,sumAmount);
 					creditLine.setDescription(process.getDocumentNo() + " " + process.getName() + " " + concept.getValue() + " " + concept.getName());
-					creditLine.saveEx();
 				} else {
 					if (MHRConcept.ACCOUNTSIGN_Debit.equals(payrollDocLine.getAccountSign())) {
 						MAccount accountBPD = MAccount.getValidCombination (getCtx(), conceptAcct.getHR_Expense_Acct() , getTrxName());
 						FactLine debitLine = fact.createLine(line, accountBPD, getC_Currency_ID(),sumAmount, null);
 						debitLine.setDescription(process.getDocumentNo() + " " + process.getName() + " " + concept.getValue() + " " + concept.getName());
-						debitLine.saveEx();
 						totalDebit = totalDebit.add(sumAmount);
 					} else if (MHRConcept.ACCOUNTSIGN_Credit.equals(payrollDocLine.getAccountSign())) {
 						MAccount accountBPC = MAccount.getValidCombination (getCtx(), conceptAcct.getHR_Revenue_Acct(), getTrxName());
 						FactLine creditLine = fact.createLine(line,accountBPC, getC_Currency_ID(),null,sumAmount);
 						creditLine.setDescription(process.getDocumentNo() + " " + process.getName() + " " + concept.getValue() + " " + concept.getName());
-						creditLine.saveEx();
 						totalCredit = totalCredit.add(sumAmount);
 					}
 				}
 			}
 		}
-		if (payroll.isPostPerEmployee()) {
+		if (process.getHR_Payroll().isPostPerEmployee()) {
 			closeBPartner(totalDebit, totalCredit, fact, as, C_BPartner_ID);
 		} else {
 			if (totalDebit.signum() != 0
 					|| totalCredit.signum() != 0) {
-				int C_Charge_ID = payroll.getC_Charge_ID();
+				int C_Charge_ID = process.getHR_Payroll().getC_Charge_ID();
 				if (C_Charge_ID > 0) {
 					MAccount acct = MCharge.getAccount(C_Charge_ID, as, totalDebit.subtract(totalCredit));
 					FactLine regTotal = null;
-					if (totalDebit.abs().compareTo(totalCredit.abs()) > 0) {
+					if (totalDebit.compareTo(totalCredit) > 0) {
 						regTotal = fact.createLine(null, acct, getC_Currency_ID(), null, totalDebit.subtract(totalCredit));
 					} else {
-						regTotal = fact.createLine(null, acct, getC_Currency_ID(), totalCredit.abs().subtract(totalDebit.abs()), null);
+						regTotal = fact.createLine(null, acct, getC_Currency_ID(), totalCredit.subtract(totalDebit), null);
 					}
 					regTotal.setAD_Org_ID(getAD_Org_ID());
 				}
@@ -207,17 +200,16 @@ public class   Doc_HRProcess extends Doc
         if(totalDebit.signum() != 0
                 || totalCredit.signum() != 0)
         {
-        	MHRPayroll payroll = MHRPayroll.getById(getCtx(), process.getHR_Payroll_ID(), getTrxName());
-            int C_Charge_ID = payroll.getC_Charge_ID();
+            int C_Charge_ID = process.getHR_Payroll().getC_Charge_ID();
             if (C_Charge_ID > 0) {
                 MAccount acct = MCharge.getAccount(C_Charge_ID, as, totalDebit.subtract(totalCredit));
                 FactLine regTotal = null;
-                if(totalDebit.abs().compareTo(totalCredit.abs()) > 0 )
+                if (totalDebit.compareTo(totalCredit) > 0) {
                     regTotal = fact.createLine(null, acct, getC_Currency_ID(), null, totalDebit.subtract(totalCredit));
-                else
-                    regTotal = fact.createLine(null, acct, getC_Currency_ID(), totalCredit.abs().subtract(totalDebit.abs()), null);
-                if (regTotal != null)
-                {
+                } else {
+                	regTotal = fact.createLine(null, acct, getC_Currency_ID(), totalCredit.subtract(totalDebit), null);
+                }
+                if (regTotal != null) {
                     regTotal.setAD_Org_ID(getAD_Org_ID());
                     regTotal.setC_BPartner_ID(c_bpartner_id);
                     regTotal.saveEx();
