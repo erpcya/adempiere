@@ -38,8 +38,6 @@ import org.spin.queue.process.FlushSystemQueue;
  */
 public class QueueLoader {
 	
-    private static QueueLoader queueLoader = null;
-    
     /**	Token Generator	*/
     private Map<Integer, QueueManager> queueMap = null;
     
@@ -50,10 +48,7 @@ public class QueueLoader {
 	 * @return
 	 */
     public static QueueLoader getInstance() {
-    	if(queueLoader == null) {
-    		queueLoader = new QueueLoader();
-    	}
-    	return queueLoader;
+    	return new QueueLoader();
     }
     
     /**
