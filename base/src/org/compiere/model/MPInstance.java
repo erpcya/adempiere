@@ -339,6 +339,7 @@ public class MPInstance extends X_AD_PInstance
 		if(parameter == null
 				&& parameterName.endsWith("_To")) {
 			String originalParameterName = parameterName.replaceAll("_To", "");
+			parameter = process.getParameter(originalParameterName);
 			Optional<MPInstancePara> optionalSavedParameter = Arrays.asList(getParameters()).stream()
 					.filter(savedParameter -> savedParameter.getParameterName().equals(originalParameterName))
 					.findFirst();
@@ -360,6 +361,7 @@ public class MPInstance extends X_AD_PInstance
 			} else {
 				instanceParameter.setParameter(originalParameterName, value.toString(), true);
 			}
+			instanceParameter.setInfo_To(getDisplayParameterValue(parameter, value));
 		} else {
 			instanceParameter = new MPInstancePara(this, sequence);
 			if (value == null) {
@@ -375,10 +377,29 @@ public class MPInstance extends X_AD_PInstance
 			} else {
 				instanceParameter.setParameter(parameterName, value.toString());
 			}
+			instanceParameter.setInfo(getDisplayParameterValue(parameter, value));
 		}
 		//
 		instanceParameter.saveEx();
 		return instanceParameter;
+	}
+	
+	private String getDisplayParameterValue(MProcessPara parameter, Object value) {
+		if(value == null) {
+			return null;
+		}
+		String displayValue = null;
+		try {
+			Lookup lookup = MLookupFactory.get (parameter.getCtx(), 0,
+					0, parameter.getAD_Reference_ID(),
+					Env.getLanguage(parameter.getCtx()), parameter.getColumnName(),
+					parameter.getAD_Reference_Value_ID(),
+					false, null);
+			displayValue = lookup.getDisplay(value);
+		} catch (Exception e) {
+			log.warning(e.getLocalizedMessage());
+		}
+		return displayValue;
 	}
 	
 	public static List<MPInstance> get(Properties ctx, int AD_Process_ID, int AD_User_ID) {
