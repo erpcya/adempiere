@@ -25,6 +25,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 
+import org.adempiere.core.domains.models.I_DD_OrderLine;
 import org.adempiere.core.domains.models.X_DD_Order;
 import org.adempiere.core.domains.models.X_DD_OrderLine;
 import org.adempiere.core.domains.models.X_T_Replenish;
@@ -42,6 +43,7 @@ import org.compiere.model.MProduct;
 import org.compiere.model.MRequisition;
 import org.compiere.model.MRequisitionLine;
 import org.compiere.model.MStorage;
+import org.compiere.model.MTable;
 import org.compiere.model.MWarehouse;
 import org.compiere.model.Query;
 import org.compiere.util.AdempiereSystemError;
@@ -135,10 +137,15 @@ public class ReplenishReport extends ReplenishReportAbstract {
 					continue;
 				}
 			}
+			int warehouseId = getSelectionAsInt(key, "SBR_M_Warehouse_ID");
+			int warehouseSourceId = getSelectionAsInt(key, "SBR_M_WarehouseSource_ID");
+			if(warehouseSourceId == 0) {
+				warehouseSourceId = MWarehouse.get(getCtx(), warehouseId).getM_WarehouseSource_ID();
+			}
 			//	
 			X_T_Replenish replenish = new X_T_Replenish(getCtx(), 0, get_TrxName());
 			replenish.setAD_PInstance_ID(getAD_PInstance_ID());
-			replenish.setM_Warehouse_ID(getSelectionAsInt(key, "SBR_M_Warehouse_ID"));
+			replenish.setM_Warehouse_ID(warehouseId);
 			replenish.setM_Product_ID(getSelectionAsInt(key, "SBR_M_Product_ID"));
 			replenish.setAD_Org_ID(getSelectionAsInt(key, "SBR_AD_Org_ID"));
 			replenish.setReplenishType(getSelectionAsString(key, "SBR_ReplenishType"));
@@ -149,7 +156,7 @@ public class ReplenishReport extends ReplenishReportAbstract {
 			replenish.setOrder_Pack(getSelectionAsBigDecimal(key, "SBR_Order_Pack"));
 			replenish.setQtyToOrder(qtyToOrdered);
 			replenish.setReplenishmentCreate(getReplenishmentCreate());
-			replenish.setM_WarehouseSource_ID(getSelectionAsInt(key, "SBR_M_WarehouseSource_ID"));
+			replenish.setM_WarehouseSource_ID(warehouseSourceId);
 			replenish.setC_DocType_ID(getDocTypeId());
 			replenishList.add(replenish);
 		}
@@ -375,7 +382,7 @@ public class ReplenishReport extends ReplenishReportAbstract {
 			try
 			{
 				Class<?> clazz = Class.forName(className);
-				custom = (ReplenishInterface)clazz.newInstance();
+				custom = (ReplenishInterface)clazz.getDeclaredConstructor().newInstance();
 			}
 			catch (Exception e)
 			{
@@ -752,7 +759,7 @@ public class ReplenishReport extends ReplenishReportAbstract {
 	 * @return
 	 */
 	private X_DD_OrderLine getDistributionOrderLineInstanceFromParent(X_DD_Order distributionOrder) {
-		X_DD_OrderLine distributionOrderLine = new X_DD_OrderLine(distributionOrder.getCtx(), 0, distributionOrder.get_TrxName());
+		X_DD_OrderLine distributionOrderLine = (X_DD_OrderLine) MTable.get(getCtx(), I_DD_OrderLine.Table_Name).getPO(0, distributionOrder.get_TrxName());
 		distributionOrderLine.setDD_Order_ID(distributionOrder.get_ID());
 		distributionOrderLine.setAD_Org_ID(distributionOrder.getAD_Org_ID());
 		distributionOrderLine.setDateOrdered(distributionOrder.getDateOrdered());
@@ -770,7 +777,7 @@ public class ReplenishReport extends ReplenishReportAbstract {
 		}
 		//	For Standard Process
 		StringBuffer localWhere = new StringBuffer("AD_PInstance_ID=?");
-		if(!isMandatoryBusinessPartner) {
+		if(isMandatoryBusinessPartner) {
 			localWhere.append(" AND ").append(" C_BPartner_ID > 0");
 		}
 		if (!Util.isEmpty(where)) {
