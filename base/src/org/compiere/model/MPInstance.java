@@ -20,6 +20,8 @@ import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Timestamp;
+import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -31,6 +33,7 @@ import java.util.logging.Level;
 import org.adempiere.core.domains.models.I_AD_PInstance_Para;
 import org.adempiere.core.domains.models.X_AD_PInstance;
 import org.compiere.util.DB;
+import org.compiere.util.DisplayType;
 import org.compiere.util.Env;
 import org.compiere.util.Msg;
 
@@ -129,17 +132,12 @@ public class MPInstance extends X_AD_PInstance
 	}	//	MPInstance
 	
 
-	/**	Parameters						*/
-	private MPInstancePara[]		m_parameters = null;
-
 	/**
 	 * 	Get Parameters
 	 *	@return parameter array
 	 */
 	public MPInstancePara[] getParameters()
 	{
-		if (m_parameters != null)
-			return m_parameters;
 		//FR: [ 2214883 ] Remove SQL code and Replace for Query - red1
 		final String whereClause = "AD_PInstance_ID=?";
 		List <MPInstancePara> list = new Query(getCtx(), I_AD_PInstance_Para.Table_Name, whereClause, null) // @TODO: Review implications of using transaction 
@@ -147,7 +145,7 @@ public class MPInstance extends X_AD_PInstance
 		.list();
 
 		//
-		m_parameters = new MPInstancePara[list.size()];
+		MPInstancePara[] m_parameters = new MPInstancePara[list.size()];
 		list.toArray(m_parameters);
 		return m_parameters;
 	}	//	getParameters
@@ -390,12 +388,37 @@ public class MPInstance extends X_AD_PInstance
 		}
 		String displayValue = null;
 		try {
-			Lookup lookup = MLookupFactory.get (parameter.getCtx(), 0,
+			if (DisplayType.isLookup(parameter.getAD_Reference_ID())) {
+				Lookup lookup = MLookupFactory.get(
+					parameter.getCtx(), 0,
 					0, parameter.getAD_Reference_ID(),
 					Env.getLanguage(parameter.getCtx()), parameter.getColumnName(),
 					parameter.getAD_Reference_Value_ID(),
-					false, null);
-			displayValue = lookup.getDisplay(value);
+					false, null
+				);
+				displayValue = lookup.getDisplay(value);
+			} else if (DisplayType.YesNo == parameter.getAD_Reference_ID()) {
+				displayValue = Msg.translate(
+					parameter.getCtx(),
+					value.toString()
+				);
+			} else if (DisplayType.isDate(parameter.getAD_Reference_ID())) {
+				SimpleDateFormat dateTimeFormat = DisplayType.getDateFormat(
+					parameter.getAD_Reference_ID(),
+					Env.getLanguage(parameter.getCtx())
+				);
+				displayValue = dateTimeFormat.format(
+					(Timestamp) value
+				);
+			} else if (DisplayType.isNumeric(parameter.getAD_Reference_ID())) {
+				DecimalFormat numberFormat = DisplayType.getNumberFormat(
+					parameter.getAD_Reference_ID(),
+					Env.getLanguage(parameter.getCtx())
+				);
+				displayValue = numberFormat.format(
+					value
+				);
+			}
 		} catch (Exception e) {
 			log.warning(e.getLocalizedMessage());
 		}
