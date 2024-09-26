@@ -565,7 +565,70 @@ public class DB_PostgreSQL implements AdempiereDatabase
 		return localConnection;
 	}
 	
-
+	private static final String CONFIG_DB_IDLE_TIMEOUT = "DB|CONFIG_DB_IDLE_TIMEOUT";
+	private static final String CONFIG_DB_MINIMUM_IDLE = "DB|CONFIG_DB_MINIMUM_IDLE";
+	private static final String CONFIG_DB_MAXIMUM_POOL_SIZE = "DB|CONFIG_DB_MAXIMUM_POOL_SIZE";
+	private static final String CONFIG_DB_CONNECTION_TIMEOUT = "DB|CONFIG_DB_CONNECTION_TIMEOUT";
+	private static final String CONFIG_DB_MAX_LIFETIME = "DB|CONFIG_DB_MAX_LIFETIME";
+	private static final String CONFIG_DB_CONNECTION_TEST_QUERY = "DB|CONFIG_DB_CONNECTION_TEST_QUERY";
+	private static final String CONFIG_DB_KEEPALIVE_TIME = "DB|CONFIG_DB_KEEPALIVE_TIME";
+	
+	/**
+	 * Get int value if exist
+	 * @param key
+	 * @return
+	 */
+	private int getPropertyAsIntValue(String key, int defaultValue) {
+		int intValue = defaultValue;
+		String value = Ini.getProperty(key);
+		if(value != null
+				&& value.trim().length() > 0) {
+			try {
+				intValue = Integer.parseInt(value);
+			} catch (Exception e) {
+				
+			}
+		}
+		return intValue;
+	}
+	
+	/**
+	 * Get int value if exist
+	 * @param key
+	 * @return
+	 */
+	private long getPropertyAsLongValue(String key, long defaultValue) {
+		long longValue = defaultValue;
+		String value = Ini.getProperty(key);
+		if(value != null
+				&& value.trim().length() > 0) {
+			try {
+				longValue = Long.parseLong(value);
+			} catch (Exception e) {
+				
+			}
+		}
+		return longValue;
+	}
+	
+	/**
+	 * Get property with default value as string
+	 * @param key
+	 * @param defaultValue
+	 * @return
+	 */
+	private String getPropertyAsStringValue(String key, String defaultValue) {
+		String stringValue = defaultValue;
+		String value = Ini.getProperty(key);
+		if(value != null
+				&& value.trim().length() > 0) {
+			stringValue = value;
+		}
+		return stringValue;
+	}
+	
+	
+	
 	/**
 	 * 	Create DataSource (Client)
 	 *	@param connection connection
@@ -584,10 +647,13 @@ public class DB_PostgreSQL implements AdempiereDatabase
 				config.setJdbcUrl(getConnectionURL(connection));
 				config.setUsername(connection.getDbUid());
 				config.setPassword(connection.getDbPwd());
-				config.setConnectionTestQuery(DEFAULT_CONN_TEST_SQL);
-				config.setIdleTimeout(0);
-				config.setMinimumIdle(15);
-				config.setMaximumPoolSize(150);
+				config.setConnectionTestQuery(getPropertyAsStringValue(CONFIG_DB_CONNECTION_TEST_QUERY, DEFAULT_CONN_TEST_SQL));
+				config.setIdleTimeout(getPropertyAsLongValue(CONFIG_DB_IDLE_TIMEOUT, 60000));
+				config.setConnectionTimeout(getPropertyAsLongValue(CONFIG_DB_CONNECTION_TIMEOUT, 5000));
+				config.setMinimumIdle(getPropertyAsIntValue(CONFIG_DB_MINIMUM_IDLE, 15));
+				config.setMaximumPoolSize(getPropertyAsIntValue(CONFIG_DB_MAXIMUM_POOL_SIZE, 150));
+				config.setMaxLifetime(getPropertyAsLongValue(CONFIG_DB_MAX_LIFETIME, 1800000));
+				config.setKeepaliveTime(getPropertyAsLongValue(CONFIG_DB_KEEPALIVE_TIME, 30000));
 				config.setPoolName("AdempiereDS");
 				config.addDataSourceProperty( "cachePrepStmts" , "true" );
 				config.addDataSourceProperty( "prepStmtCacheSize" , "250" );
@@ -625,11 +691,13 @@ public class DB_PostgreSQL implements AdempiereDatabase
 							config.setJdbcUrl(getConnectionURL(connection));
 							config.setUsername(connection.getDbUid());
 							config.setPassword(connection.getDbPwd());
-							config.setConnectionTestQuery(DEFAULT_CONN_TEST_SQL);
-							config.setIdleTimeout(60000);
-							config.setKeepaliveTime(30000);
-							config.setMinimumIdle(15);
-							config.setMaximumPoolSize(150);
+							config.setConnectionTestQuery(getPropertyAsStringValue(CONFIG_DB_CONNECTION_TEST_QUERY, DEFAULT_CONN_TEST_SQL));
+							config.setIdleTimeout(getPropertyAsLongValue(CONFIG_DB_IDLE_TIMEOUT, 60000));
+							config.setConnectionTimeout(getPropertyAsLongValue(CONFIG_DB_CONNECTION_TIMEOUT, 5000));
+							config.setMinimumIdle(getPropertyAsIntValue(CONFIG_DB_MINIMUM_IDLE, 15));
+							config.setMaximumPoolSize(getPropertyAsIntValue(CONFIG_DB_MAXIMUM_POOL_SIZE, 150));
+							config.setMaxLifetime(getPropertyAsLongValue(CONFIG_DB_MAX_LIFETIME, 1800000));
+							config.setKeepaliveTime(getPropertyAsLongValue(CONFIG_DB_KEEPALIVE_TIME, 30000));
 							config.setPoolName("AdempiereDS");
 							config.addDataSourceProperty( "cachePrepStmts" , "true" );
 							config.addDataSourceProperty( "prepStmtCacheSize" , "250" );
