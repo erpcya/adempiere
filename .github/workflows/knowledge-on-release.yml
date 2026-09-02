@@ -1,0 +1,149 @@
+# Copy this to .github/workflows/knowledge-on-release.yml in each repository the
+# platform documents.
+#
+# On a published release it asks the knowledge service what the release did to the
+# knowledge. Two filters decide whether a human hears about it: only a
+# CONTRACTS_STALE verdict regenerates the contract, and only a regenerated contract
+# that actually differs opens a pull request. Most releases produce neither, which
+# is the point — a pull request that arrives for every release teaches reviewers to
+# approve without reading.
+#
+# Two secrets, per repository or defined for the organization:
+#
+#   ERP_AI_URL     https://plus.erpya.com/tools/knowledge
+#   ERP_AI_TOKEN   whatever the proxy in front of the service accepts
+#
+# And one repository variable that decides whether it may open a pull request:
+#
+#   ERP_AI_PUBLISH   true, or absent
+#
+# Absent means evaluate and report, which is where a repository should start. Turn
+# it on once you have watched a few releases and agree with what the verdicts say —
+# a pull request opened by something you have not yet learned to trust is worse
+# than no pull request, because you will read the first two and skim the rest.
+#
+# This job submits and exits. It does not wait: a model call takes minutes, a
+# private repository's runner is billed by the minute, and waiting bought nothing
+# that could not be delivered another way. The service posts the verdict as a commit
+# status on the released commit, under the context `erp-ai/knowledge`, and opens a
+# pull request when one is warranted.
+#
+# For the status to appear, the token the service uses needs `Commit statuses:
+# write` on this repository. GITHUB_ALLOWED is not consulted for it: that list
+# answers "may I propose code here", and a status is a notification aimed at the
+# repository that asked. Opening the pull request does consult it.
+#
+# The service reads the repository from its own mounted clone, not from this runner,
+# so what it evaluates is what it last fetched.
+
+name: Knowledge on release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0        # tags, to find what this release moved from
+
+      - name: Find the previous release tag
+        id: previous
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # The release before this one. Without it there is no range to evaluate,
+          # and a first release has nothing to compare against — which is not a
+          # failure.
+          #
+          # Asked of the releases rather than of the tags. Two failures made the
+          # earlier version filter tags by hand: repositories accumulate tags that
+          # are not releases — `rs-2.1`, `RC-1.3.7`, a branch snapshot — and under
+          # `-v:refname` a leading letter outranks every digit, so the newest release
+          # lost to something tagged years ago. The filter that fixed both required a
+          # tag to be numeric, which is a guess about how somebody names a release
+          # and it was wrong: `adempiere-3.9.4-1.3.6` matched nothing, so a
+          # repository whose every tag names its base version would never have its
+          # contract regenerated, silently, for ever.
+          #
+          # A release is a thing GitHub knows about. Ordered by when it was
+          # published, so no ordering is inferred from a name, and drafts are not
+          # releases.
+          #
+          # `--is-ancestor` stays: a release that exists is not necessarily behind
+          # this one, and a parallel maintenance line read as this release's
+          # predecessor produces a plausible range and a confident verdict about a
+          # diff nobody shipped.
+          tag='${{ github.event.release.tag_name }}'
+
+          # Only the line this platform tracks, which is the repository's default
+          # branch. A contract describes one line of development; a release cut from
+          # a maintenance branch describes a different one, and regenerating the
+          # contract from it would replace what the current line says with what an
+          # older line still does.
+          #
+          # The default branch rather than a name written here: a fork keeps
+          # upstream's branch untouched and makes its own the default, and that
+          # choice is already recorded where GitHub can be asked for it.
+          line=$(gh api "repos/$GITHUB_REPOSITORY" -q .default_branch)
+          if ! git merge-base --is-ancestor "$tag" "origin/$line" 2>/dev/null; then
+            echo "$tag is not on $line, which is the line this platform tracks."
+            echo "Nothing regenerated: a contract describes one line, and this"
+            echo "release belongs to another."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          previous=""
+          for candidate in $(gh api "repos/$GITHUB_REPOSITORY/releases?per_page=100" \
+                             --paginate -q '.[] | select(.draft | not) | .tag_name'); do
+            [ "$candidate" = "$tag" ] && continue
+            git rev-parse -q --verify "refs/tags/$candidate" >/dev/null || continue
+            if git merge-base --is-ancestor "$candidate" "$tag^" 2>/dev/null; then
+              previous="$candidate"; break
+            fi
+          done
+          if [ -z "$previous" ]; then
+            # Asked anyway, with an empty range. A repository with no contract yet
+            # gets its first one written — the service checks that before it looks
+            # at any range — and this step used to decide not to ask, so a first
+            # release on a line produced nothing at all and said "nothing to
+            # compare" as though that were the whole answer.
+            #
+            # Where a contract does exist, the empty range is a no-op the service
+            # reports as such. The judgement belongs there: it holds the contract
+            # and this step does not.
+            echo "No earlier release on this line. Asking anyway: a repository"
+            echo "without a contract gets its first one, and one that has a"
+            echo "contract already will find the range empty."
+            echo "previous=$tag" >> "$GITHUB_OUTPUT"
+          else
+            echo "Evaluating $previous..${{ github.event.release.tag_name }}"
+            echo "previous=$previous" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Ask the knowledge service
+        if: steps.previous.outputs.skip != 'true'
+        id: submit
+        run: |
+          response=$(curl -sS -X POST "${{ secrets.ERP_AI_URL }}/chain" \
+            -H "Authorization: Bearer ${{ secrets.ERP_AI_TOKEN }}" \
+            -H 'content-type: application/json' \
+            -d '{
+                  "repository": "${{ github.repository }}",
+                  "since": "${{ steps.previous.outputs.previous }}",
+                  "until": "${{ github.event.release.tag_name }}",
+                  "sha": "${{ github.sha }}",
+                  "publish": ${{ vars.ERP_AI_PUBLISH == 'true' && format('"{0}"', github.repository) || 'null' }}
+                }')
+          echo "$response"
+          job=$(echo "$response" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("job",""))')
+          [ -n "$job" ] || { echo "The service did not accept the request."; exit 1; }
+          echo "Submitted $job. The verdict arrives as a commit status on ${{ github.sha }},"
+          echo "not here — a model call takes minutes and a runner that waits for one is"
+          echo "billed for sleeping. Read it on the commit, or ask the service:"
+          echo "  GET \$ERP_AI_URL/jobs/$job"
