@@ -63,9 +63,14 @@ installation is a dependency of the base; the arrow points the other way.
 
 Everything. Directly:
 
-- `erpcya/adempiere_patch`, `adempiere_patch_swing`, `adempiere_patch_zk` — the
+- `erpya/adempiere_patch`, `adempiere_patch_swing`, `adempiere_patch_zk` — the
   patches, which **shadow classes from this repository on the classpath**. This is
-  the mechanism section 7 depends on.
+  the mechanism section 7 depends on. They are the same layer and different
+  surfaces — `adempiere_patch_swing` carries `APanel` and `AEnv`, Swing
+  controllers; `adempiere_patch_zk` carries `AdempiereWebUI` and `GridPanel`.
+  Their markers record that as `surface`, not as `type`: typing them `Swing UI`
+  and `Web UI` would import that classification's rule against reusable business
+  logic, and overriding a controller is behaviour.
 - The libraries — `adempiere-pos-improvements`, `adempiere-dashboard-improvements`,
   `LVE`, `withholding-engine`, `adempiere-jwt-token`,
   `adempiere-business-processors`, `adempiere-payroll-multi-engine` — which compile
@@ -97,9 +102,22 @@ Every local edit is a permanent tax on that.
 
 **What to do instead.** Copy the file into the patch that shadows it and edit the
 copy. The patch is chosen by where the file lives here — `client/` to
-`adempiere_patch_swing`, `zkwebui/` to `adempiere_patch_zk`, everything else to
-`adempiere_patch` — as declared in `.ai/repository.yml`. The copy records the
-commit it was taken at.
+`erpya/adempiere_patch_swing`, `zkwebui/` to `erpya/adempiere_patch_zk`, everything
+else to `erpya/adempiere_patch` — as declared in `.ai/repository.yml`. The patches
+are in `erpya`; this fork is in `erpcya`.
+
+**The destination is computed from the package, not copied from the path.** The
+three patches do not share a source-root convention, and the marker declares each
+one's. Verified file by file:
+
+| | here | patch |
+|---|---|---|
+| Swing | `client/src/org/compiere/apps/APanel.java` | `src/main/java/base/org/compiere/apps/APanel.java` |
+| ZK | `zkwebui/WEB-INF/src/…/GridPanel.java` | `zkwebui/WEB-INF/src/…/GridPanel.java` |
+| core | `base/src/org/compiere/model/MOrder.java` | `base/src/main/java/base/org/compiere/model/MOrder.java` |
+
+A file placed at this repository's path inside the Swing patch compiles and
+shadows nothing. The copy records the commit it was taken at.
 
 ## 8. Architectural rules
 
