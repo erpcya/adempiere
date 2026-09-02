@@ -27,15 +27,33 @@ changes_allowed_paths:
 
 # Where an override lands, decided by where the file lives here rather than argued
 # per proposal. First match wins; the last entry is the general case.
+# `source_root` is not decoration. Shadowing works on the fully-qualified name, so
+# what must be preserved is the *package* — and the three patches do not agree on
+# where their source root is. Verified file by file:
+#
+#   base   client/src/org/compiere/apps/APanel.java
+#   patch  src/main/java/base/org/compiere/apps/APanel.java     (different root)
+#
+#   base   zkwebui/WEB-INF/src/.../GridPanel.java
+#   patch  zkwebui/WEB-INF/src/.../GridPanel.java               (same path)
+#
+# Writing "the same path" would have produced a file in the wrong place for the
+# Swing patch, which compiles and shadows nothing.
 overrides:
   - when: client/
-    repository: erpcya/adempiere_patch_swing
+    strip: client/src/
+    repository: erpya/adempiere_patch_swing
+    source_root: src/main/java/base/
     because: controller and desktop-client code
   - when: zkwebui/
-    repository: erpcya/adempiere_patch_zk
-    because: the web UI
+    strip: ""
+    repository: erpya/adempiere_patch_zk
+    source_root: ""
+    because: the web UI, which mirrors the base path exactly
   - when: "**"
-    repository: erpcya/adempiere_patch
+    strip: base/src/
+    repository: erpya/adempiere_patch
+    source_root: base/src/main/java/base/
     because: the general case, base/ included
 
 # The words people use for this when they report something. Deliberately broad:
