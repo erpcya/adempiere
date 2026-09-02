@@ -1,0 +1,57 @@
+# Read by the ERP AI knowledge platform. Declarative, not authoritative: an agent
+# derives the classification from evidence and reports a disagreement with this
+# file as an UNKNOWN rather than resolving it.
+type: Base
+entityType: D
+owner: ERP Consultores y Asociados
+
+# The community base. This fork exists so the platform has a base to read and so
+# this installation can carry upstream merges on its own branch.
+upstream: https://github.com/adempiere/adempiere
+branch: feature/erpya/master
+
+# This repository is evidence, never a destination. See organization/DR-0003.
+#
+# `never` does not mean the platform ignores it — the base is where most behaviour
+# actually lives, and an analysis that cannot read it concludes nothing. It means
+# no proposal ever lands here: when behaviour in this tree must change, the change
+# is a copy of the file into a patch, edited there, because the patch shadows this
+# on the classpath.
+#
+# The exception is this repository describing itself: its contract, its marker and
+# the platform's own workflows. Its source tree is never a target.
+changes: never
+changes_allowed_paths:
+  - .ai/**
+  - .github/workflows/**
+
+# Where an override lands, decided by where the file lives here rather than argued
+# per proposal. First match wins; the last entry is the general case.
+overrides:
+  - when: client/
+    repository: erpcya/adempiere_patch_swing
+    because: controller and desktop-client code
+  - when: zkwebui/
+    repository: erpcya/adempiere_patch_zk
+    because: the web UI
+  - when: "**"
+    repository: erpcya/adempiere_patch
+    because: the general case, base/ included
+
+# The words people use for this when they report something. Deliberately broad:
+# this is the repository nearly every functional report is ultimately about.
+terms:
+  - orden
+  - documento
+  - completar
+  - asiento
+  - contabilidad
+  - almacén
+  - producto
+  - socio de negocio
+  - pago
+  - asignación
+  - impuesto
+  - ventana
+  - proceso
+  - diccionario

@@ -1,0 +1,108 @@
+# Copy this to .github/workflows/erp-ai-review.yml in each repository where this
+# platform opens pull requests — the code repositories, not the one where issues are
+# filed. They are different repositories, and this belongs in the one holding the
+# change.
+#
+# Two labels, both applied to a pull request:
+#
+#   erp-ai:reanalyse   the diagnosis was wrong. Closes this and asks the question again.
+#   erp-ai:rework      the diagnosis was right and the change was not. Rewrites it here.
+#
+# Create both labels in this repository first. A label that does not exist cannot be
+# applied, and nothing will tell you why nothing happened.
+#
+# Which one to use, in one test: **if the change were perfectly written, would it
+# solve your problem?** Yes means `rework`. No means `reanalyse` — no amount of better
+# code gets there from here.
+#
+# Comment first, then label. The label is the trigger, so the service reads the
+# comments that exist at that moment; one added afterwards did not arrive. Say what
+# the change missed, in whichever of the three places suits you — a review, a comment
+# on a line of the diff, or the conversation tab. All three are read.
+#
+# The trigger is `pull_request`, not `issues`, and the difference is not cosmetic.
+# The REST API treats a pull request as an issue — /issues/16/comments answers for
+# pull request 16 — but the webhook events are separate, and `issues` does not fire
+# for pull requests at all. A workflow listening on `issues` for a label applied to a
+# pull request is not misconfigured; it is deaf. Nothing runs, nothing fails, and the
+# Actions tab stays empty, which reads exactly like a workflow that was never
+# installed.
+#
+# `pull_request_target` rather than `pull_request`, for one reason: it takes the
+# workflow file and the secrets from the **base branch**, where this file lives.
+#
+# `pull_request` takes them from the merge ref — the pull request's branch merged with
+# the base — which usually contains this file too, and stops containing anything the
+# moment the pull request has a conflict. A review workflow that goes silent exactly
+# when a change is contentious is the wrong failure to design in.
+#
+# What makes `pull_request_target` dangerous elsewhere does not apply here: the danger
+# is running code authored in the pull request while holding the repository's secrets.
+# **This job checks nothing out and runs nothing from the pull request.** It sends a
+# number to a service. There is no step that could execute what a contributor wrote.
+
+name: ERP AI on pull request review
+
+on:
+  pull_request_target:
+    types: [labeled]
+
+jobs:
+  send-back:
+    if: >
+      github.event.label.name == 'erp-ai:reanalyse' ||
+      github.event.label.name == 'erp-ai:rework' 
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      # Off before anything else, so the label is an instruction rather than a state.
+      # It has to be re-applied to run again, which is right: after a rework the
+      # commit has changed and the previous answer is stale. Five re-labels went into
+      # discovering that removing and re-adding is the only way to fire `labeled`
+      # twice — this makes the removal somebody else's job.
+      - name: Take the label off, so it can be applied again
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          NUMBER: ${{ github.event.pull_request.number }}
+          LABEL: ${{ github.event.label.name }}
+          API: ${{ github.api_url }}
+        run: |
+          curl -sS -X DELETE -H "authorization: Bearer $GH_TOKEN" \
+            "$API/repos/$REPO/issues/$NUMBER/labels/$LABEL" > /dev/null || true
+
+      - name: Send the review back to the step that was wrong
+        env:
+          # Through the environment, never interpolated into the script: `${{ }}` is
+          # substituted as text before the shell parses the line.
+          REPO: ${{ github.repository }}
+          NUMBER: ${{ github.event.pull_request.number }}
+          LABEL: ${{ github.event.label.name }}
+          SERVICE: ${{ secrets.ERP_AI_URL }}
+          SERVICE_TOKEN: ${{ secrets.ERP_AI_TOKEN }}
+        run: |
+          set -euo pipefail
+          action="${LABEL#erp-ai:}"
+
+          response=$(jq -n \
+            --arg repo "$REPO" --argjson num "$NUMBER" --arg action "$action" \
+            '{repository: $repo, pull_number: $num, action: $action}' \
+            | curl -sS -X POST "$SERVICE/review" \
+                -H "Authorization: Bearer $SERVICE_TOKEN" \
+                -H 'content-type: application/json' --data @-)
+          echo "$response"
+
+          # A 409 here is a real answer, not a hiccup: the pull request is already
+          # closed, or it does not say which issue it is for. Failing makes it
+          # visible, because silently doing nothing looks identical to working.
+          echo "$response" | jq -e .job > /dev/null \
+            || { echo "The service did not accept the review."; exit 1; }
+
+          if [ "$action" = "reanalyse" ]; then
+            echo "Submitted. This pull request will be closed and the issue analysed"
+            echo "again; the new analysis arrives as a comment on the issue."
+          else
+            echo "Submitted. The change will be written again on this branch, so this"
+            echo "pull request and its review thread stay as they are."
+          fi
