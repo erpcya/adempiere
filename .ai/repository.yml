@@ -64,17 +64,6 @@ overrides:
 # The words people use for this when they report something. Deliberately broad:
 # this is the repository nearly every functional report is ultimately about.
 terms:
-  - orden
-  - documento
-  - completar
-  - asiento
-  - contabilidad
-  - almacén
-  - producto
-  - socio de negocio
-  - pago
-  - asignación
-  - impuesto
-  - ventana
-  - proceso
-  - diccionario
+  - diccionario de ADempiere
+  - motor de documentos
+  - callout del diccionario
